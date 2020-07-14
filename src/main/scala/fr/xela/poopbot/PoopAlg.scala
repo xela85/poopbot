@@ -10,7 +10,6 @@ import fr.xela.poopbot.protocol.PoopBotError.WrongNumberOfArguments
 
 trait PoopAlg[F[_]] {
   def take(message: String): F[Either[PoopBotError, BranchAssignation]]
-
   def release(message: String): F[Either[PoopBotError, BranchAssignation]]
 }
 

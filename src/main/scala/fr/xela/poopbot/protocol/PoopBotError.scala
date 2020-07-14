@@ -5,11 +5,16 @@ sealed trait PoopBotError
 object PoopBotError {
 
   case class BranchParsingFailure(given: String) extends PoopBotError
+
   case object WrongNumberOfArguments extends PoopBotError
 
-  def message(poopBotError: PoopBotError): String = poopBotError match {
-    case BranchParsingFailure(given) => s"$given is not a valid branch name."
-    case WrongNumberOfArguments => s"Few or too many arguments were given to the bot."
+  def show(poopBotError: PoopBotError): String = {
+    val explanation = poopBotError match {
+      case BranchParsingFailure(given) => s"$given n'est pas un nom valide de branche."
+      case WrongNumberOfArguments => s"mauvais nombre d'arguments"
+    }
+    s"""L'erreur suivante a été rencontrée par PoopBot: *$explanation*.
+       |Veuillez vérifier votre commande""".stripMargin
   }
 
 }

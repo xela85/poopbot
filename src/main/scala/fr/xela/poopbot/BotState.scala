@@ -18,7 +18,11 @@ case class BranchAssignation(users: Queue[User])
 object BranchAssignation {
   val empty: BranchAssignation = BranchAssignation(Queue.empty)
 
+  val usersL: Lens[BranchAssignation, Queue[User]] = GenLens[BranchAssignation](_.users)
+
   def show(branchAssignation: BranchAssignation): String = branchAssignation.users.map(_.name).intercalate(", ")
+
+
 
   def queueUser(branchAssignation: BranchAssignation, user: User): BranchAssignation =
     BranchAssignation(branchAssignation.users.enqueue(user))
@@ -36,9 +40,9 @@ object User {
 
 object BotState {
 
-  private val updateMaster: Lens[BotState, BranchAssignation] = GenLens[BotState](_.master)
-  private val updateNext: Lens[BotState, BranchAssignation] = GenLens[BotState](_.next)
-  private val updateProd: Lens[BotState, BranchAssignation] = GenLens[BotState](_.prod)
+  private val masterL: Lens[BotState, BranchAssignation] = GenLens[BotState](_.master)
+  private val nextL: Lens[BotState, BranchAssignation] = GenLens[BotState](_.next)
+  private val prodL: Lens[BotState, BranchAssignation] = GenLens[BotState](_.prod)
 
   def initial: BotState = BotState(
     master = BranchAssignation.empty,
@@ -49,7 +53,7 @@ object BotState {
   def addUserFromBranch(branch: Branch, user: User): State[BotState, BranchAssignation] = {
     State { botState =>
       val lensForBranch = updateBranchLens(branch)
-      val updated = lensForBranch.modify(BranchAssignation.queueUser(_, user))(botState)
+      val updated = (lensForBranch composeLens BranchAssignation.usersL).modify(_.enqueue(user))(botState)
       (updated, lensForBranch.get(updated))
     }
   }
@@ -57,15 +61,15 @@ object BotState {
   def removeUserFromBranch(branch: Branch, user: User): State[BotState, BranchAssignation] = {
     State { botState =>
       val lensForBranch = updateBranchLens(branch)
-      val updated = lensForBranch.modify(BranchAssignation.dequeueUser(_, user))(botState)
+      val updated = (lensForBranch composeLens BranchAssignation.usersL).modify(_.filterNot(_ == user))(botState)
       (updated, lensForBranch.get(updated))
     }
   }
 
   private def updateBranchLens(branch: Branch): Lens[BotState, BranchAssignation] = branch match {
-    case Branch.Master => updateMaster
-    case Branch.Next => updateNext
-    case Branch.Prod => updateProd
+    case Branch.Master => masterL
+    case Branch.Next => nextL
+    case Branch.Prod => prodL
   }
 
 }
