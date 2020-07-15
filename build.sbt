@@ -3,6 +3,7 @@ val CirceVersion = "0.13.0"
 val Specs2Version = "4.10.0"
 val LogbackVersion = "1.2.3"
 val monocleVersion = "2.0.0" // depends on cats 2.x
+val CatsVersion = "2.0.0"
 
 lazy val root = (project in file("."))
   .settings(
@@ -19,7 +20,9 @@ lazy val root = (project in file("."))
       "org.specs2" %% "specs2-core" % Specs2Version % "test",
       "ch.qos.logback" % "logback-classic" % LogbackVersion,
       "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
-      "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion
+      "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
+      "org.typelevel" %% "cats-core" % CatsVersion,
+      "org.typelevel" %% "cats-laws" % CatsVersion
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

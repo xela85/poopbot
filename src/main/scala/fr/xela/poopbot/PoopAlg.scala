@@ -2,15 +2,16 @@ package fr.xela.poopbot
 
 import cats.effect.Sync
 import cats.effect.concurrent.Ref
-import cats.syntax.functor._
-import fr.xela.poopbot.protocol.{Branch, PoopBotError}
 import cats.syntax.either._
+import cats.syntax.functor._
 import fr.xela.poopbot.protocol.PoopBotError.WrongNumberOfArguments
+import fr.xela.poopbot.protocol.{AssignationResult, Branch, PoopBotError, User}
+import fr.xela.poopbot.state.BotState
 
 
 trait PoopAlg[F[_]] {
-  def take(message: String): F[Either[PoopBotError, BranchAssignation]]
-  def release(message: String): F[Either[PoopBotError, BranchAssignation]]
+  def take(message: String): F[Either[PoopBotError, AssignationResult]]
+  def release(message: String): F[Either[PoopBotError, AssignationResult]]
 }
 
 object PoopAlg {
@@ -22,12 +23,12 @@ object PoopAlg {
   def impl[F[_]: Sync](state: Ref[F, BotState]): PoopAlg[F] =
     new PoopAlg[F] {
 
-    override def take(message: String): F[Either[PoopBotError, BranchAssignation]] =
+    override def take(message: String): F[Either[PoopBotError, AssignationResult]] =
       parseMessage(message).traverse { branch =>
         state.modifyState(BotState.addUserFromBranch(branch, User.single))
       }
 
-    override def release(message: String): F[Either[PoopBotError, BranchAssignation]] =
+    override def release(message: String): F[Either[PoopBotError, AssignationResult]] =
       parseMessage(message).traverse { branch =>
         state.modifyState(BotState.removeUserFromBranch(branch, User.single))
       }

@@ -1,19 +1,18 @@
 package fr.xela.poopbot
 
+import cats.Show
 import cats.data.EitherT
 import cats.effect.Sync
 import cats.implicits._
-import fr.xela.poopbot.protocol.PoopBotError
-import fs2.text.utf8Decode
+import fr.xela.poopbot.protocol.{AssignationResult, PoopBotError, User}
+import fr.xela.poopbot.state.MergingQueue
+import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
-import org.http4s.multipart.Multipart
-import org.http4s._
 
 object PoopbotRoutes {
 
   object SlackTextMatcher extends QueryParamDecoderMatcher[String]("text")
-
 
   case class SlackApiBody(text: String, slackUser: User)
 
@@ -32,11 +31,11 @@ object PoopbotRoutes {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    def handlePoop(request: Request[F], action: String => F[Either[PoopBotError, BranchAssignation]]) = {
+    def handlePoop(request: Request[F], action: String => F[Either[PoopBotError, AssignationResult]]) = {
       for {
         slackApiBody <- request.as[SlackApiBody]
         branchResult <- action(slackApiBody.text)
-        httpResult <- Ok(branchResult.fold(PoopBotError.show, BranchAssignation.show))
+        httpResult <- Ok(branchResult.fold(PoopBotError.show, Show[AssignationResult].show))
       } yield httpResult
     }
 
