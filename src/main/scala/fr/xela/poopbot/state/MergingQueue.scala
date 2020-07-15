@@ -43,7 +43,7 @@ object MergingQueue {
   implicit def showQueue[T: Show]: Show[MergingQueue[T]] = Show.show { queue =>
     queue.toList match {
       case Nil => "Personne n'attend sur cette branche."
-      case list => list.map(_.show).intercalate(", ")
+      case list => list.map(_.show).intercalate(" ➡ ")
     }
 
   }

@@ -31,10 +31,10 @@ object PoopbotRoutes {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    def handlePoop(request: Request[F], action: String => F[Either[PoopBotError, AssignationResult]]) = {
+    def handlePoop(request: Request[F], action: SlackApiBody => F[Either[PoopBotError, AssignationResult]]) = {
       for {
         slackApiBody <- request.as[SlackApiBody]
-        branchResult <- action(slackApiBody.text)
+        branchResult <- action(slackApiBody)
         httpResult <- Ok(branchResult.fold(PoopBotError.show, Show[AssignationResult].show))
       } yield httpResult
     }
