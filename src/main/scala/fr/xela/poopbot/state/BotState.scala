@@ -1,7 +1,7 @@
 package fr.xela.poopbot.state
 
 import cats.data.State
-import fr.xela.poopbot.protocol.{AssignationResult, Branch, User}
+import fr.xela.poopbot.protocol.{BranchInfo, Branch, User}
 import fr.xela.poopbot.state.MergingQueue.Nobody
 import monocle.Lens
 import monocle.macros.GenLens
@@ -20,23 +20,25 @@ object BotState {
     prod = Nobody
   )
 
-  def addUserFromBranch(branch: Branch, user: User): State[BotState, AssignationResult] = {
+  def addUserFromBranch(branch: Branch, user: User): State[BotState, BranchInfo] = {
     State { botState =>
-      val lensForBranch = updateBranchLens(branch)
+      val lensForBranch = branchLens(branch)
       val updated = lensForBranch.modify(_.append(user))(botState)
-      (updated, AssignationResult(branch, lensForBranch.get(updated)))
+      (updated, BranchInfo(branch, lensForBranch.get(updated)))
     }
   }
 
-  def removeUserFromBranch(branch: Branch, user: User): State[BotState, AssignationResult] = {
+  def removeUserFromBranch(branch: Branch, user: User): State[BotState, BranchInfo] = {
     State { botState =>
-      val lensForBranch = updateBranchLens(branch)
+      val lensForBranch = branchLens(branch)
       val updated = lensForBranch.modify(_.remove(user))(botState)
-      (updated, AssignationResult(branch, lensForBranch.get(updated)))
+      (updated, BranchInfo(branch, lensForBranch.get(updated)))
     }
   }
 
-  private def updateBranchLens(branch: Branch): Lens[BotState, MergingQueue[User]] = branch match {
+  def getAssignation(botState: BotState, branch: Branch): BranchInfo = BranchInfo(branch, branchLens(branch).get(botState))
+
+  private def branchLens(branch: Branch): Lens[BotState, MergingQueue[User]] = branch match {
     case Branch.Master => masterL
     case Branch.Next => nextL
     case Branch.Prod => prodL

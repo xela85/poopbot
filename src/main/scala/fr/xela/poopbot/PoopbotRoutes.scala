@@ -4,8 +4,7 @@ import cats.Show
 import cats.data.EitherT
 import cats.effect.Sync
 import cats.implicits._
-import fr.xela.poopbot.protocol.{AssignationResult, PoopBotError, User}
-import fr.xela.poopbot.state.MergingQueue
+import fr.xela.poopbot.protocol.{BranchInfo, PoopBotError, User}
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
@@ -31,17 +30,18 @@ object PoopbotRoutes {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    def handlePoop(request: Request[F], action: SlackApiBody => F[Either[PoopBotError, AssignationResult]]) = {
+    def handlePoop(request: Request[F], action: SlackApiBody => F[Either[PoopBotError, BranchInfo]]) = {
       for {
         slackApiBody <- request.as[SlackApiBody]
         branchResult <- action(slackApiBody)
-        httpResult <- Ok(branchResult.fold(PoopBotError.show, Show[AssignationResult].show))
+        httpResult <- Ok(branchResult.fold(PoopBotError.show, Show[BranchInfo].show))
       } yield httpResult
     }
 
     HttpRoutes.of[F] {
       case req@POST -> Root / "take" => handlePoop(req, poopAlg.take)
       case req@POST -> Root / "release" => handlePoop(req, poopAlg.release)
+      case req@POST -> Root / "status" => handlePoop(req, poopAlg.getState)
     }
 
   }
