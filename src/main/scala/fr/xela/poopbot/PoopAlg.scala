@@ -6,9 +6,9 @@ import cats.instances.either._
 import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.functor._
-import fr.xela.poopbot.PoopbotRoutes.SlackApiBody
 import fr.xela.poopbot.protocol.PoopBotError.WrongNumberOfArguments
 import fr.xela.poopbot.protocol._
+import fr.xela.poopbot.slackapi.SlackApiBody
 import fr.xela.poopbot.state.BotState
 
 

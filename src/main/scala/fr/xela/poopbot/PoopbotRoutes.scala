@@ -3,9 +3,16 @@ package fr.xela.poopbot
 import cats.Show
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.implicits._
+import cats.instances.option._
+import cats.syntax.apply._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import fr.xela.poopbot.protocol.{BranchInfo, PoopBotError, User}
+import fr.xela.poopbot.slackapi.SlackResponseType.{Ephemeral, InChannel}
+import fr.xela.poopbot.slackapi.{SlackApiBody, SlackResponseBody}
+import io.circe.syntax._
 import org.http4s._
+import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
 
@@ -13,16 +20,12 @@ object PoopbotRoutes {
 
   object SlackTextMatcher extends QueryParamDecoderMatcher[String]("text")
 
-  case class SlackApiBody(text: String, slackUser: User)
-
   implicit def slackApiBodyDecoder[F[_] : Sync]: EntityDecoder[F, SlackApiBody] = {
     EntityDecoder[F, UrlForm].flatMapR { formData =>
-      EitherT.fromEither {
-        (formData.getFirst("text"),
-          formData.getFirst("user_id").map(User(_)))
-          .mapN(SlackApiBody)
-          .toRight[DecodeFailure](InvalidMessageBodyFailure(s"Fields missing"))
-      }
+      EitherT.fromEither((formData.getFirst("text"),
+        formData.getFirst("user_id").map(User(_)))
+        .mapN(SlackApiBody)
+        .toRight[DecodeFailure](InvalidMessageBodyFailure(s"Fields missing")))
     }
   }
 
@@ -34,7 +37,10 @@ object PoopbotRoutes {
       for {
         slackApiBody <- request.as[SlackApiBody]
         branchResult <- action(slackApiBody)
-        httpResult <- Ok(branchResult.fold(PoopBotError.show, Show[BranchInfo].show))
+        httpResult <- branchResult match {
+          case Left(value) => Ok(SlackResponseBody(Ephemeral, PoopBotError.show(value)).asJson)
+          case Right(value) => Ok(SlackResponseBody(InChannel, Show[BranchInfo].show(value)).asJson)
+        }
       } yield httpResult
     }
 
