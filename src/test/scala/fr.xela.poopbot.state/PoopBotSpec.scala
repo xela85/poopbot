@@ -1,4 +1,3 @@
-
 import org.specs2.Specification
 import fr.xela.poopbot.state.MergingQueue
 import fr.xela.poopbot.state.MergingQueue.Nobody
@@ -27,7 +26,7 @@ Calling remove on a merging queue
 
   private val initialSize = exampleQueue.size
 
-  private val newItem: String = "4"
+  private val newItem: String      = "4"
   private val itemToRemove: String = "3"
 
   object Adding {
@@ -36,12 +35,12 @@ Calling remove on a merging queue
       val updatedQueue = exampleQueue.append(newItem)
       (updatedQueue.toList must contain(
         newItem
-      )) and (updatedQueue.size must beEqualTo(exampleQueue.size + 1))
+      )).and(updatedQueue.size must beEqualTo(exampleQueue.size + 1))
     }
 
     def elmPresent = {
       val itemAlreadyHere = exampleQueue.append(newItem)
-      val updatedQueue = itemAlreadyHere.append(newItem)
+      val updatedQueue    = itemAlreadyHere.append(newItem)
       itemAlreadyHere.size should beEqualTo(updatedQueue.size)
     }
 
@@ -51,15 +50,15 @@ Calling remove on a merging queue
 
     def elmPresent = {
       val updatedQueue = exampleQueue.remove(itemToRemove)
-      (updatedQueue.toList must not contain(
+      (updatedQueue.toList must not contain (
         itemToRemove
-      )) and (updatedQueue.size must beEqualTo(exampleQueue.size - 1))
+      )).and(updatedQueue.size must beEqualTo(exampleQueue.size - 1))
     }
 
     def elmNotPresent = {
-        val itemNotHere = exampleQueue.remove(itemToRemove)
-        val updatedQueue = itemNotHere.remove(itemToRemove)
-        updatedQueue.size should beEqualTo(itemNotHere.size)
+      val itemNotHere  = exampleQueue.remove(itemToRemove)
+      val updatedQueue = itemNotHere.remove(itemToRemove)
+      updatedQueue.size should beEqualTo(itemNotHere.size)
     }
 
   }
