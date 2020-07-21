@@ -6,6 +6,7 @@ import cats.instances.string._
 import cats.syntax.foldable._
 import cats.syntax.show._
 import fr.xela.poopbot.state.MergingQueue.{Nobody, SomebodyAnd}
+import scala.annotation.tailrec
 
 
 sealed trait MergingQueue[+T] {
@@ -22,12 +23,20 @@ sealed trait MergingQueue[+T] {
     case SomebodyAnd(existing, rest) => SomebodyAnd(existing, rest.remove(element))
   }
 
-  def concat[B >: T](mergingQueue: MergingQueue[B]): MergingQueue[B] = mergingQueue match {
+  final def concat[B >: T](mergingQueue: MergingQueue[B]): MergingQueue[B] = mergingQueue match {
     case Nobody => this
     case SomebodyAnd(user, rest) => rest.concat(append(user))
   }
 
-  def toList: List[T] = this match {
+  final def size: Int = {
+    def recursiveSize(queue: MergingQueue[T], acc: Int): Int = queue match {
+      case Nobody => acc
+      case SomebodyAnd(_, rest) => recursiveSize(rest, acc + 1)
+    }
+    recursiveSize(this, 0)
+  }
+
+  final def toList: List[T] = this match {
     case MergingQueue.Nobody => Nil
     case SomebodyAnd(user, rest) => user :: rest.toList
   }

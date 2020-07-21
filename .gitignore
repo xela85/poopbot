@@ -1,4 +1,7 @@
 target/
 project/target
 .idea
+.bloop
+.metals
+project/metals.sbt
 ngrok
